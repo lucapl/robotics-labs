@@ -30,7 +30,7 @@ class image_converter:
         # DONE 2: Add image publisher
         self.image_publisher = rospy.Publisher(f'/{self.name}/raw_image/compressed',CompressedImage,queue_size=queue_size)
         # DONE 3: Add 2D detections publisher
-        self.detection_publisher = rospy.Publisher(f'/{self.name}/2Ddetection/array',Detection2DArray,queue_size=queue_size)
+        self.detection_publisher = rospy.Publisher(f'/{self.name}/detections/array2d',Detection2DArray,queue_size=queue_size)
 
         # initialize the model
         self.model = YOLO("yolov8n.pt")
@@ -77,20 +77,11 @@ class image_converter:
             detection.bbox = bbox
 
             # class probabilities
-            classes = result.boxes.cls.cpu().numpy()
-            confidences = result.boxes.conf.cpu().numpy()
-            hypotheses = []
-            for i in range(len(classes)):
-                hypothesis = ObjectHypothesisWithPose()
-                hypothesis.id = int(classes[i])
-                hypothesis.score = confidences[i]
-                x0,y0,x1,y1 = result.boxes.xyxy.cpu().numpy().astype(int)[i]
-                hypothesis.pose.pose.position.x = (x0 + x1)/2
-                hypothesis.pose.pose.position.y = (y0 + y1)/2
-                hypotheses.append(hypothesis)
+            classes = tuple(result.boxes.cls.cpu().numpy().astype(int))
+            confidences = tuple(result.boxes.conf.cpu().numpy().astype(float))
+            hypotheses = [ObjectHypothesisWithPose(id=c_id,score=prob) for c_id,prob in zip(classes,confidences)] 
 
             detection.results = hypotheses
-
             detections.append(detection)
         
         raw_detection = Detection2DArray()
