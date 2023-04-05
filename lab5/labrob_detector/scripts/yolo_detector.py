@@ -19,6 +19,7 @@ from vision_msgs.msg import Detection2DArray
 from vision_msgs.msg import Detection2D
 from vision_msgs.msg import BoundingBox2D
 from vision_msgs.msg import ObjectHypothesisWithPose
+from geometry_msgs.msg import PoseWithCovariance
 
 class image_converter:
     def __init__(self):
@@ -83,6 +84,9 @@ class image_converter:
                 hypothesis = ObjectHypothesisWithPose()
                 hypothesis.id = int(classes[i])
                 hypothesis.score = confidences[i]
+                x0,y0,x1,y1 = result.boxes.xyxy.cpu().numpy().astype(int)[i]
+                hypothesis.pose.pose.position.x = (x0 + x1)/2
+                hypothesis.pose.pose.position.y = (y0 + y1)/2
                 hypotheses.append(hypothesis)
 
             detection.results = hypotheses
