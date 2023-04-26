@@ -1,0 +1,5 @@
+<launch>
+    <node name="rosrun" type="walking_robot_listener.py" pkg="learning_tf2" />
+    <node name="rosbag" type="play"  pkg="rosbag" args="/catkin_ws/walking_robot.bag"/>
+    <node name="rosrecord" type="record" pkg="rosbag" args="--duration=20 -a -O &quot;/catkin_ws/recorded_robot.bag&quot;"/>
+</launch>
